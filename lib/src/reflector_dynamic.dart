@@ -184,9 +184,12 @@ class DynamicTypeFactories extends TypeReflector {
   List<Key> _generateParameterKeys(Type type) {
     ClassMirror classMirror = _reflectClass(type);
     MethodMirror ctor = classMirror.declarations[classMirror.simpleName];
-
-    return new List.generate(ctor.parameters.length, (int pos) {
-      ParameterMirror p = ctor.parameters[pos];
+    // Ignore named params.  We don't inject them because we need there to be
+    // only a small number of combinations of params we are willing to inject
+    // into each constructor.
+    var posParameters = ctr.paramaters.where((p) => !p.isNamed).toList();
+    return new List.generate(posParameters.length, (int pos) {
+      ParameterMirror p = ctor.posParameters[pos];
       if (p.type.qualifiedName == #dynamic) {
         var name = MirrorSystem.getName(p.simpleName);
         throw new DynamicReflectorError("Error getting params for '$type': "
